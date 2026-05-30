@@ -445,7 +445,7 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
           {/* z-40 — HERO copy (bottom-left, opacity driven by scroll) */}
           <div ref={heroRef} className="absolute inset-0 z-40"
             style={{ willChange: "transform, opacity", opacity: 0, pointerEvents: "none" }}>
-            <div className="absolute bottom-0 left-0 px-6 md:px-12 pb-12 md:pb-16 max-w-[640px]">
+            <div className="hero-copy absolute bottom-0 left-0 px-6 md:px-12 pb-12 md:pb-16 max-w-[640px]">
               <div className="flex items-center gap-3 mb-5">
                 <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-gold">01 / Atlas</span>
                 <span className="w-12 h-px bg-gold/40" />

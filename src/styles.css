@@ -42,13 +42,24 @@ body {
   inset: 0;
 }
 @media (max-aspect-ratio: 1 / 1) {
+  /* Anchor the map band in the upper third (just under the nav) instead of
+     dead-centring it — so the map + hero title read as one balanced block that
+     fills the screen, killing the big black gap above the map. */
   .atlas-stage {
     inset: auto;
-    top: 50%;
+    top: 27vh;
     left: 50%;
     width: 100vw;
     height: calc(100vw * 9 / 16);
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
+  }
+  /* Hero title sits directly beneath the map band (band bottom = 27vh + height). */
+  .hero-copy {
+    bottom: auto;
+    top: calc(27vh + (100vw * 9 / 16) + 1.5rem);
+    max-width: none;
+    right: 0;
+    padding-bottom: 0;
   }
 }
 
