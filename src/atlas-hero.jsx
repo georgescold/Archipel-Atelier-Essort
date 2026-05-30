@@ -203,6 +203,7 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
   const portrait = usePortrait();
 
   const sceneRef = useRefH(null);
+  const stickyRef = useRefH(null);
   const mapRef = useRefH(null);
   const veilRef = useRefH(null);
   const algLRef = useRefH(null);
@@ -248,7 +249,13 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
       const scene = sceneRef.current;
       if (!scene) return;
       const r = scene.getBoundingClientRect();
-      const pTarget = clamp(-r.top / (r.height - window.innerHeight), 0, 1);
+      // Use the sticky stage's own height (a stable CSS 100vh), NOT
+      // window.innerHeight. On mobile the URL bar shows/hides while scrolling,
+      // which changes window.innerHeight mid-dive and made the scroll progress
+      // `p` (and therefore the map scale/blur, kelp, opacities) jump. The sticky
+      // height stays constant, so the dive stays silky.
+      const vpH = (stickyRef.current && stickyRef.current.offsetHeight) || window.innerHeight;
+      const pTarget = clamp(-r.top / (r.height - vpH), 0, 1);
       // silky: glide p toward its target a beat after the wheel stops
       pSmooth.current = lerp(pSmooth.current, pTarget, 0.13);
       const p = Math.abs(pSmooth.current - pTarget) < 0.0006 ? pTarget : pSmooth.current;
@@ -334,11 +341,13 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
       className="relative w-full"
       style={{ height: reduced ? "100vh" : (fine ? "240vh" : "220vh") }}
       onMouseMove={fine ? onMove : undefined}>
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
+      <div ref={stickyRef} className="sticky top-0 h-screen w-full overflow-hidden">
         <window.Reveal show={show} delay={0.1} duration={1.1} y={0} className="absolute inset-0">
 
-          {/* z-0 — MAP stage (shared 16:9 box: whole map fits on mobile, cover on desktop) */}
-          <div className="atlas-stage z-0">
+          {/* z-0 — MAP stage (shared 16:9 box: whole map fits on mobile, cover on desktop).
+              overflow-hidden clips the subtle scale overscan so the map never bleeds
+              into the dark letterbox on portrait. */}
+          <div className="atlas-stage z-0 overflow-hidden">
             <div className="absolute inset-0" ref={mapRef}
               style={{ transformOrigin: "center", willChange: "transform, filter", transform: "scale(1.04)", filter: `blur(${fine ? 14 : 9}px) brightness(0.82)` }}>
               <div className="absolute inset-0" style={{
