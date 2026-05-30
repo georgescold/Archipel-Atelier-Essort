@@ -147,6 +147,25 @@ function Nav({ show, setCursorBig }) {
   );
 }
 
+/* ---------- portrait detection (matches the .atlas-stage CSS breakpoint) ---------- */
+function usePortrait() {
+  const [p, setP] = useStateH(false);
+  useEffectH(() => {
+    const mq = window.matchMedia("(max-aspect-ratio: 1 / 1)");
+    const on = () => setP(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    window.addEventListener("resize", on, { passive: true });
+    window.addEventListener("orientationchange", on);
+    return () => {
+      mq.removeEventListener("change", on);
+      window.removeEventListener("resize", on);
+      window.removeEventListener("orientationchange", on);
+    };
+  }, []);
+  return p;
+}
+
 /* ---------- parallax hook ---------- */
 function useParallax(range = 22, stiffness = 60, damping = 20) {
   const elRef = useRefH(null);
@@ -181,6 +200,7 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
   const [arrived, setArrived] = useStateH(false);    // dived → island cards interactive
   const reduced = window.useReducedMotion();
   const fine = window.useFinePointer();
+  const portrait = usePortrait();
 
   const sceneRef = useRefH(null);
   const mapRef = useRefH(null);
@@ -304,7 +324,10 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
     mouse.current.target.y = (e.clientY / window.innerHeight - 0.5) * 2;
   };
 
-  const kelpW = fine ? "clamp(340px, 62vw, 880px)" : "clamp(300px, 70vw, 720px)";
+  // Desktop: wide curtains that meet behind the mascot. Mobile portrait: each
+  // side spans half the width so left + right meet cleanly at centre (no bright
+  // screen-blend overlap band, which was the visible vertical seam on phones).
+  const kelpW = portrait ? "50vw" : "clamp(340px, 62vw, 880px)";
 
   return (
     <section id="explorer" ref={sceneRef}
@@ -314,19 +337,21 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <window.Reveal show={show} delay={0.1} duration={1.1} y={0} className="absolute inset-0">
 
-          {/* z-0 — MAP wrapper (whole archipel visible: contain, no overscan, settles to 1.0) */}
-          <div className="absolute inset-0 z-0" ref={mapRef}
-            style={{ transformOrigin: "center", willChange: "transform, filter", transform: "scale(1.04)", filter: `blur(${fine ? 14 : 9}px) brightness(0.82)` }}>
-            <div className="absolute inset-0" style={{
-              transform: reduced ? "none" : (scaleIn ? "scale(1)" : "scale(1.06)"),
-              transition: `transform 2.4s ${window.EASE_OUT}`,
-            }}>
-              <img src={window.ARCHIPEL.image} alt="Carte de l'archipel d'Aluria"
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ opacity: mapAlive ? 0 : 1, transition: `opacity 0.9s ${window.EASE}` }} />
-              <div className="absolute inset-0" style={{ opacity: mapAlive ? 1 : 0, transition: `opacity 0.9s ${window.EASE}` }}>
-                <window.MuxVideo playbackId={window.ARCHIPEL.playbackId} poster={window.ARCHIPEL.image}
-                  play={true} className="absolute inset-0 w-full h-full object-cover" />
+          {/* z-0 — MAP stage (shared 16:9 box: whole map fits on mobile, cover on desktop) */}
+          <div className="atlas-stage z-0">
+            <div className="absolute inset-0" ref={mapRef}
+              style={{ transformOrigin: "center", willChange: "transform, filter", transform: "scale(1.04)", filter: `blur(${fine ? 14 : 9}px) brightness(0.82)` }}>
+              <div className="absolute inset-0" style={{
+                transform: reduced ? "none" : (scaleIn ? "scale(1)" : "scale(1.06)"),
+                transition: `transform 2.4s ${window.EASE_OUT}`,
+              }}>
+                <img src={window.ARCHIPEL.image} alt="Carte de l'archipel d'Aluria"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ opacity: mapAlive ? 0 : 1, transition: `opacity 0.9s ${window.EASE}` }} />
+                <div className="absolute inset-0" style={{ opacity: mapAlive ? 1 : 0, transition: `opacity 0.9s ${window.EASE}` }}>
+                  <window.MuxVideo playbackId={window.ARCHIPEL.playbackId} poster={window.ARCHIPEL.image}
+                    play={true} className="absolute inset-0 w-full h-full object-cover" />
+                </div>
               </div>
             </div>
           </div>
@@ -375,12 +400,13 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
           <div className="absolute inset-0 z-[25] pointer-events-none bg-abyss/18"
             style={{ opacity: hoveredId ? 1 : 0, transition: `opacity 0.5s ${window.EASE}` }} />
 
-          {/* z-30 — ISLAND CARDS (interactive once dived) */}
-          <div className="absolute inset-0 z-30"
+          {/* z-30 — ISLAND CARDS (interactive once dived) — same 16:9 stage as the
+              map so each parchment stays glued to its island at any screen size */}
+          <div className="atlas-stage z-30"
             style={{ opacity: arrived ? 1 : 0, pointerEvents: arrived ? "auto" : "none",
               transition: `opacity 0.6s ${window.EASE}` }}>
             {window.ISLANDS.map((isl, i) => (
-              <IslandMapCard key={isl.id} island={isl} i={i} fine={fine} reduced={reduced}
+              <IslandMapCard key={isl.id} island={isl} i={i} fine={fine} reduced={reduced} portrait={portrait}
                 hoveredId={hoveredId} setHoveredId={setHoveredId} setOpenId={openIsland} setCursorBig={setCursorBig} />
             ))}
           </div>
@@ -491,9 +517,13 @@ function IslandMotif({ id, ink }) {
 }
 
 /* ---------- ISLAND MAP CARD — closed parchment card that unfolds into a living card ---------- */
-function IslandMapCard({ island: isl, i, fine, reduced, hoveredId, setHoveredId, setOpenId, setCursorBig }) {
+function IslandMapCard({ island: isl, i, fine, reduced, portrait, hoveredId, setHoveredId, setOpenId, setCursorBig }) {
   const on = hoveredId === isl.id;
   const cfg = isl.card || { w: 56, ratio: "3 / 4", tiltY: -18, tiltX: 6, motif: isl.id };
+  // On phones the whole map is fitted to the screen width, so the islands sit
+  // much closer together — shrink the parchments so neighbours don't overlap
+  // while staying a comfortable tap target.
+  const cardW = portrait ? Math.round(cfg.w * 0.6) : cfg.w;
   // preview flip computed from the parchment's REAL on-screen position (works with manual placement)
   const [flip, setFlip] = useStateH({ h: isl.map.x >= 50 ? "left" : "right", v: isl.map.y >= 50 ? "up" : "down" });
 
@@ -527,7 +557,7 @@ function IslandMapCard({ island: isl, i, fine, reduced, hoveredId, setHoveredId,
         onClick={() => setOpenId(isl.id)} aria-label={isl.name}>
         <div className="relative"
           style={{
-            width: `${cfg.w}px`, transformOrigin: "center",
+            width: `${cardW}px`, transformOrigin: "center",
             transform: `rotateY(${cfg.tiltY}deg) rotateX(${cfg.tiltX}deg) scale(${on ? 1.08 : 1})`,
             transition: `transform 0.3s ${window.EASE_OUT}`,
             filter: "drop-shadow(0 0 9px rgba(212,168,87,0.3)) drop-shadow(5px 9px 11px rgba(0,0,0,0.6))",
