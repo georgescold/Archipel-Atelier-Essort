@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-abyss: #0a0e1a;
+  --color-abyss-deep: #060912;
+  --color-ink: #f4efe6;
+  --color-gold: #d4a857;
+  --color-gold-bright: #ecca7e;
+  --color-mist: #8fa3b8;
+}
+html { scroll-behavior: smooth; overflow-x: hidden; }
+body {
+  background: var(--color-abyss);
+  color: var(--color-ink);
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  margin: 0;
+}
+::selection { background: var(--color-gold); color: var(--color-abyss); }
+
+/* dark liquid glass */
+.glass {
+  background: rgba(12, 17, 30, 0.45);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: inset 0 1px 0 rgba(244,239,230,0.08),
+              inset 0 0 0 1px rgba(212,168,87,0.12),
+              0 20px 60px -20px rgba(0,0,0,0.6);
+}
+.text-balance { text-wrap: balance; }
+
+/* hide native cursor on desktop — custom cursor takes over */
+@media (pointer: fine) { * { cursor: none !important; } }
+
+/* film grain drift */
+@keyframes grainShift {
+  0%,100% { transform: translate(0,0); }
+  10% { transform: translate(-4%,-4%); }
+  30% { transform: translate(3%,-2%); }
+  50% { transform: translate(-2%,4%); }
+  70% { transform: translate(4%,2%); }
+  90% { transform: translate(-3%,-3%); }
+}
+/* hotspot pulse */
+@keyframes pulseRing {
+  0% { transform: translate(-50%,-50%) scale(0.6); opacity: 0.9; }
+  100% { transform: translate(-50%,-50%) scale(2.6); opacity: 0; }
+}
+/* loading rule */
+@keyframes drawLine { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* perpetual gentle float for closed island cards */
+@keyframes floatY {
+  0%,100% { transform: translate(-50%, -50%); }
+  50% { transform: translate(-50%, calc(-50% - 5px)); }
+}
+/* four DISTINCT island drifts */
+@keyframes floatA { 0%,100%{transform:translate(-50%,-50%) rotate(0deg);} 50%{transform:translate(-50%,calc(-50% - 8px)) rotate(-1deg);} }
+@keyframes floatB { 0%,100%{transform:translate(-50%,-50%);} 50%{transform:translate(calc(-50% + 6px),calc(-50% - 4px));} }
+@keyframes floatC { 0%,100%{transform:translate(-50%,-50%) rotate(0deg);} 50%{transform:translate(calc(-50% - 4px),calc(-50% - 6px)) rotate(1.6deg);} }
+@keyframes floatD { 0%,100%{transform:translate(-50%,-50%);} 33%{transform:translate(calc(-50% - 5px),calc(-50% - 3px));} 66%{transform:translate(calc(-50% + 4px),calc(-50% - 7px));} }
+/* per-letter rise */
+@keyframes letterUp { from { transform: translateY(110%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+/* generic fade-in */
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+/* mobile sheet up */
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+/* scroll cue dot */
+@keyframes scrollDot { 0% { transform: translate(-50%,-12px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(-50%,40px); opacity: 0; } }
+/* slow radial drift */
+@keyframes drift {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(4%,-3%) scale(1.06); }
+}
+/* welcome halo breathing */
+@keyframes haloPulse {
+  0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.62; }
+  50% { transform: translate(-50%,-50%) scale(1.12); opacity: 0.92; }
+}
+/* welcome title soft glow */
+@keyframes titleGlow {
+  0%,100% { text-shadow: 0 2px 30px rgba(6,9,18,0.9), 0 0 18px rgba(212,168,87,0.10); }
+  50% { text-shadow: 0 2px 30px rgba(6,9,18,0.95), 0 0 30px rgba(236,202,126,0.30); }
+}
+/* gold shimmer sweep through display text */
+@keyframes shimmerSweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.shimmer-gold {
+  background-image: linear-gradient(100deg, #d4a857 0%, #ecca7e 30%, #fff4d6 48%, #ecca7e 66%, #d4a857 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: shimmerSweep 5.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; scroll-behavior: auto !important; }
+}
+
+video { background: var(--color-abyss-deep); }
