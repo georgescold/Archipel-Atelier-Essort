@@ -42,24 +42,34 @@ body {
   inset: 0;
 }
 @media (max-aspect-ratio: 1 / 1) {
-  /* Anchor the map band in the upper third (just under the nav) instead of
-     dead-centring it — so the map + hero title read as one balanced block that
-     fills the screen, killing the big black gap above the map. */
+  :root {
+    /* Map band height. Fills the screen width on phones (56.25vw = 16:9), but is
+       capped at 46vh on wide/short portrait screens (tablets, foldables, near
+       square) so the band + hero title always fit without overflowing.
+       The min() also guarantees the derived width (band-h * 16/9) never exceeds
+       100vw, so there is never a horizontal scrollbar. */
+    --atlas-band-h: min(56.25vw, 46vh);
+    --atlas-copy-h: 210px;   /* reserved space for the hero-title block */
+    --atlas-gap: 1.5rem;
+    --atlas-group-top: calc(50vh - (var(--atlas-band-h) + var(--atlas-gap) + var(--atlas-copy-h)) / 2);
+  }
+  /* Map + cards: anchored so the whole (band + title) group is vertically
+     centred — no big black gap above, and it adapts to every portrait ratio. */
   .atlas-stage {
     inset: auto;
-    top: 27vh;
     left: 50%;
-    width: 100vw;
-    height: calc(100vw * 9 / 16);
+    top: var(--atlas-group-top);
+    width: calc(var(--atlas-band-h) * 16 / 9);
+    height: var(--atlas-band-h);
     transform: translateX(-50%);
   }
-  /* Hero title sits directly beneath the map band (band bottom = 27vh + height). */
+  /* Hero title sits directly beneath the map band. */
   .hero-copy {
     bottom: auto;
-    top: calc(27vh + (100vw * 9 / 16) + 1.5rem);
-    max-width: none;
     right: 0;
+    max-width: none;
     padding-bottom: 0;
+    top: calc(var(--atlas-group-top) + var(--atlas-band-h) + var(--atlas-gap));
   }
 }
 

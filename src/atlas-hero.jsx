@@ -430,7 +430,7 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
                 <span className="text-[10px] md:text-[11px] font-mono tracking-[0.4em] uppercase text-gold-bright">L'Atlas d'Aluria · Atelier Essort</span>
                 <span className="w-8 h-px bg-gold/50" />
               </div>
-              <h2 className="font-display text-[2.7rem] md:text-[4.6rem] font-light tracking-tight text-ink leading-[1.02]"
+              <h2 className="font-display text-[clamp(2rem,8.5vw,2.7rem)] md:text-[4.6rem] font-light tracking-tight text-ink leading-[1.02]"
                 style={{ animation: `titleGlow 6s ${window.EASE} infinite` }}>
                 Scroll pour <span className="italic font-serif shimmer-gold">découvrir…</span>
               </h2>
@@ -450,7 +450,7 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
                 <span className="text-[10px] font-mono tracking-[0.3em] uppercase text-gold">01 / Atlas</span>
                 <span className="w-12 h-px bg-gold/40" />
               </div>
-              <h2 className="font-display text-[2.6rem] md:text-[4.4rem] leading-[0.98] font-light tracking-tight text-ink">
+              <h2 className="font-display text-[clamp(1.9rem,8vw,2.6rem)] md:text-[4.4rem] leading-[0.98] font-light tracking-tight text-ink">
                 <span className="block whitespace-nowrap">Un monde rêvé,</span>
                 <span className="block whitespace-nowrap italic font-serif text-gold-bright">île par île.</span>
               </h2>
@@ -520,10 +520,13 @@ function IslandMotif({ id, ink }) {
 function IslandMapCard({ island: isl, i, fine, reduced, portrait, hoveredId, setHoveredId, setOpenId, setCursorBig }) {
   const on = hoveredId === isl.id;
   const cfg = isl.card || { w: 56, ratio: "3 / 4", tiltY: -18, tiltX: 6, motif: isl.id };
-  // On phones the whole map is fitted to the screen width, so the islands sit
-  // much closer together — shrink the parchments so neighbours don't overlap
-  // while staying a comfortable tap target.
-  const cardW = portrait ? Math.round(cfg.w * 0.6) : cfg.w;
+  // On phones the whole map is fitted to the band, so islands sit much closer
+  // together — size each parchment as a CONSTANT fraction of the band width (not
+  // a fixed px), so the spacing-to-size ratio is identical on a 320px phone, a
+  // 412px phone or a tablet → no overlap at any width. Calibrated so it matches
+  // the 0.6× sizing that was verified non-overlapping at a 375px band.
+  const bandW = Math.min(window.innerWidth, window.innerHeight * 0.46 * 16 / 9);
+  const cardW = portrait ? Math.round(cfg.w * 0.6 * bandW / 375) : cfg.w;
   // preview flip computed from the parchment's REAL on-screen position (works with manual placement)
   const [flip, setFlip] = useStateH({ h: isl.map.x >= 50 ? "left" : "right", v: isl.map.y >= 50 ? "up" : "down" });
 
