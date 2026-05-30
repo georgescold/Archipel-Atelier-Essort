@@ -1,0 +1,57 @@
+// L'Atlas d'Aluria — application shell & state.
+const { useState: useStateA, useEffect: useEffectA, useCallback: useCallbackA } = React;
+
+function App() {
+  const [loaded, setLoaded] = useStateA(false);
+  const [arrived, setArrived] = useStateA(false);
+  const [hoveredId, setHoveredId] = useStateA(null);
+  const [openId, setOpenId] = useStateA(null);
+  const [cursorBig, setCursorBig] = useStateA(false);
+
+  // reveal the site almost immediately — the kelp curtain is now the intro
+  useEffectA(() => { const t = setTimeout(() => setLoaded(true), 150); return () => clearTimeout(t); }, []);
+
+  // body scroll lock + escape close while overlay open (guarded so it never
+  // clobbers the Hero intro's own overflow lock)
+  useEffectA(() => {
+    if (!openId) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e) => { if (e.key === "Escape") setOpenId(null); };
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [openId]);
+
+  const islands = window.ISLANDS;
+  const curIdx = islands.findIndex((i) => i.id === openId);
+  const island = curIdx >= 0 ? islands[curIdx] : null;
+  const go = useCallbackA((dir) => {
+    setOpenId((id) => {
+      const i = islands.findIndex((x) => x.id === id);
+      const n = (i + dir + islands.length) % islands.length;
+      return islands[n].id;
+    });
+  }, [islands]);
+
+  return (
+    <div className="relative min-h-screen bg-abyss text-ink antialiased">{/* no overflow-x-hidden here: it would compute overflow-y:auto and break position:sticky in the hero; body handles horizontal clipping */}
+      <window.CustomCursor big={cursorBig} />
+      <window.GrainOverlay />
+
+      <window.Nav show={loaded && arrived} setCursorBig={setCursorBig} />
+      <window.Hero show={loaded} onArrived={setArrived} hoveredId={hoveredId} setHoveredId={setHoveredId}
+        setOpenId={setOpenId} setCursorBig={setCursorBig} />
+      <window.Destinations setOpenId={setOpenId} setCursorBig={setCursorBig} />
+      <window.Manifeste />
+      <window.Footer />
+
+      {island && (
+        <window.IslandOverlay island={island} setCursorBig={setCursorBig}
+          onClose={() => { setOpenId(null); setCursorBig(false); }}
+          onPrev={() => go(-1)} onNext={() => go(1)} onJump={(id) => setOpenId(id)} />
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
