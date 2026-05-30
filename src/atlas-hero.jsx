@@ -335,6 +335,15 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
   // side spans half the width so left + right meet cleanly at centre (no bright
   // screen-blend overlap band, which was the visible vertical seam on phones).
   const kelpW = portrait ? "50vw" : "clamp(340px, 62vw, 880px)";
+  // Portrait: feather the kelp's inner (meeting) edges so the two halves blend
+  // softly at the centre instead of showing a hard mirror seam, and feather the
+  // map band's top/bottom edges so it melts into the dark rather than reading as
+  // a sharp rectangle. Desktop keeps its full curtains (no mask).
+  const kelpFadeL = portrait ? "linear-gradient(to right, #000 60%, transparent 100%)" : "none";
+  const kelpFadeR = portrait ? "linear-gradient(to left, #000 60%, transparent 100%)" : "none";
+  const mapFade = portrait
+    ? "linear-gradient(to bottom, transparent 0%, #000 12%, #000 88%, transparent 100%)"
+    : "none";
 
   return (
     <section id="explorer" ref={sceneRef}
@@ -347,7 +356,7 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
           {/* z-0 — MAP stage (shared 16:9 box: whole map fits on mobile, cover on desktop).
               overflow-hidden clips the subtle scale overscan so the map never bleeds
               into the dark letterbox on portrait. */}
-          <div className="atlas-stage z-0 overflow-hidden">
+          <div className="atlas-stage z-0 overflow-hidden" style={{ maskImage: mapFade, WebkitMaskImage: mapFade }}>
             <div className="absolute inset-0" ref={mapRef}
               style={{ transformOrigin: "center", willChange: "transform, filter", transform: "scale(1.04)", filter: `blur(${fine ? 14 : 9}px) brightness(0.82)` }}>
               <div className="absolute inset-0" style={{
@@ -381,12 +390,14 @@ function Hero({ show, onArrived, hoveredId, setHoveredId, setOpenId, setCursorBi
               width: kelpW, objectFit: "cover", objectPosition: "left center",
               mixBlendMode: "screen", transformOrigin: "left center", zIndex: 20,
               pointerEvents: "none", willChange: "transform, opacity",
+              maskImage: kelpFadeL, WebkitMaskImage: kelpFadeL,
               transform: "translateX(-4%) scale(1)", opacity: 1 }} />
           <img src={window.ALGUES.right} ref={algRRef} alt="" aria-hidden="true"
             style={{ position: "absolute", top: 0, bottom: 0, right: 0, height: "100%",
               width: kelpW, objectFit: "cover", objectPosition: "right center",
               mixBlendMode: "screen", transformOrigin: "right center", zIndex: 20,
               pointerEvents: "none", willChange: "transform, opacity",
+              maskImage: kelpFadeR, WebkitMaskImage: kelpFadeR,
               transform: "translateX(4%) scale(1)", opacity: 1 }} />
 
           {/* z-[22] — Essort mascot as a luminous medallion at the kelp junction (pristine video) */}
