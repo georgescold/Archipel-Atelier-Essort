@@ -11,15 +11,24 @@ function App() {
   // reveal the site almost immediately — the kelp curtain is now the intro
   useEffectA(() => { const t = setTimeout(() => setLoaded(true), 150); return () => clearTimeout(t); }, []);
 
-  // body scroll lock + escape close while overlay open (guarded so it never
-  // clobbers the Hero intro's own overflow lock)
+  // scroll lock + escape close while overlay open. NOTE: because the page sets
+  // `html { overflow-x: hidden }`, the <html> element (not <body>) is the scroll
+  // container, so body overflow:hidden alone won't stop the page from scrolling —
+  // we must lock the documentElement too.
   useEffectA(() => {
     if (!openId) return;
-    const prev = document.body.style.overflow;
+    const root = document.documentElement;
+    const prevRoot = root.style.overflowY;
+    const prevBody = document.body.style.overflow;
+    root.style.overflowY = "hidden";
     document.body.style.overflow = "hidden";
     const onKey = (e) => { if (e.key === "Escape") setOpenId(null); };
     window.addEventListener("keydown", onKey);
-    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+    return () => {
+      root.style.overflowY = prevRoot;
+      document.body.style.overflow = prevBody;
+      window.removeEventListener("keydown", onKey);
+    };
   }, [openId]);
 
   const islands = window.ISLANDS;
